@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All the Fishes Part 3</title>
-    <style>
-        canvas {
-            filter:hue-rotate(-30deg);
-            
-        }
-    </style>
 </head>
 
 <body>
@@ -22,6 +16,7 @@
             Sprite,
             Container,
             Graphics,
+            FillGradient,
             Text,
             TextStyle
         } from './js/pixi.js';
@@ -35,8 +30,8 @@
 
         //Initialize the application
         await app.init({
-            width: 640,
-            height: 600,
+            width: 800,
+            height: 680,
             background: 0x141414,
         });
         document.body.appendChild(app.canvas);
@@ -45,8 +40,8 @@
         const bgTexture = await Assets.load('img/aquarium.jpg');
         const background = new Sprite(bgTexture);
         // Position 
-        background.width = 640;
-        background.height = 480;
+        background.width = 800;
+        background.height = 560;
         // Add to stage
         app.stage.addChildAt(background, 0);
         
@@ -60,6 +55,8 @@
         const fishsprite1 = new Sprite(texture);
         const fishsprite2 = new Sprite(texture);
         const fishsprite3 = new Sprite(texture);
+        const fishsprite4 = new Sprite(texture);
+        const fishsprite5 = new Sprite(texture);
 
         //Create animiation container
         const deadfish = new Container();
@@ -68,12 +65,15 @@
             deadfish.tint = 0x40BB80;
             deadfish.anchor = (.5);
         const funfish = new Container();
+        
 
         //Add to container
         deadfish.addChild(fishsprite1, fishsprite2);
         funfish.addChild(fishsprite3);
 
         //Add container to stage
+        app.stage.addChild(fishsprite5);
+        app.stage.addChild(fishsprite4);
         app.stage.addChild(starfish);
         app.stage.addChild(deadfish, funfish);
 
@@ -93,6 +93,15 @@
         fishsprite3.anchor.set(.5);
         fishsprite3.scale.set(.40);
         fishsprite3.tint= 0xFFFF00;
+
+        fishsprite4.scale.set(.4);
+        fishsprite4.x = 400;
+        fishsprite4.y = 150;
+
+        fishsprite5.scale.set(.3);
+        fishsprite5.x = 200;
+        fishsprite5.y = 400;
+        fishsprite5.anchor.set(.5);
 
         //Animation ticker
         app.ticker.add((time) => {
@@ -124,6 +133,7 @@
                 this.w = w;
                 this.h = h;
                 this.c = 0xFFFFFF;
+                this.s = 0x000000;
 
                 //Make it listen for events
                 this.eventMode = 'static'; 
@@ -155,7 +165,8 @@
                 //The body
                 this.body = new Graphics()
                             .rect(0,0,this.w, this.h)
-                            .fill(this.c);
+                            .fill(this.c)
+                            .stroke(this.s);
                 this.addChild(this.body);
 
                 //The label
@@ -185,6 +196,11 @@
                 this.draw();
 
             }
+            //Set stroke
+            setStroke(stroke){
+                this.s = stroke;
+                this.draw();
+            }
 
         }
         
@@ -192,6 +208,36 @@
             button.x = 30;
             button.y = app.screen.height - (button.h + 30);
             button.setColor("white");
+
+        
+
+        const gradient = new FillGradient
+        ({
+            type: 'linear',
+            start: { x: 0, y: 0 },
+            end: { x: 1, y: 1 },
+            colorStops: [
+                { offset: 0, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .1, color: 'lightblue' },
+                { offset: .2, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .5, color: 'lightblue' },
+                { offset: .8, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .9, color: 'lightblue' },
+                { offset: 1, color: 'rgba(0, 0, 0, 0)'},
+            ],
+        });
+
+        let glass = new Graphics()
+            .rect(0,0,800, 560)
+            .fill({fill: gradient, alpha: .5});
+            
+        let fishtank = new Graphics()
+            .rect(0,0,800, 560)
+            .fill({color: 'rgba(0, 200, 0, 0.5)'})
+            .stroke({width: 10, color: "black", alignment: 1});
+        
+        app.stage.addChild(glass);
+        app.stage.addChild(fishtank);
         app.stage.addChild(button);
 
         //---------------Draggable dead fish---------------
@@ -240,14 +286,66 @@
         fishsprite2.on('pointerup', onPointerUp);
         fishsprite2.on('pointerupoutside', onPointerUpOutside);
 
-        async function swim() {
+        //-------fishsprite4-------
+        fishsprite4.eventMode = 'static';
+        fishsprite4.interactive = true;
+        fishsprite4.cursor = "pointer";
+
+        Animate.bob(fishsprite4);
+        fishsprite4.on('pointerdown', (event) => {
+            async function swim() {
+                await Animate.to(fishsprite4, {
+                    duration: 1800,
+                    x: 100,
+                    y: -40,
+                    angle: 30,
+                    easing: Animate.easeInOut
+                })
+                await Animate.to(fishsprite4, {
+                    duration: 2000,
+                    x: 400,
+                    y: 150,
+                    angle: 0,
+                    easing: Animate.easeInOut
+                })
+            }
+            swim();
+        });
+
+        //-------fishsprite5-------
+        background.eventMode = 'static';
+        background.interactive = true;
+        background.cursor = "pointer";
+
+        Animate.bob(fishsprite5);
+        background.on('pointerdown', (event) => {
+            async function swim() {
+                await Animate.to(fishsprite5, {
+                    duration: 3000,
+                    x: event.global.x,
+                    y: event.global.y,
+                    easing: Animate.easeInOut
+                })
+                await Animate.to(fishsprite5, {
+                    duration: 3000,
+                    x: 200,
+                    y: 400,
+                    easing: Animate.easeInOut
+                })
+            }
+            swim();
+        });
+    
+    
+        //-------Starfish-------
+        async function star() {
             await Animate.to(starfish, {
                 duration:1000,
                 x: 80,
                 y: 250,
                 tint: 0xFF0000,
                 alpha: 1,
-                //scale: .2,
+                scale: {x: .5, y: .5},
                 angle: 0
             })
             await Animate.to(starfish, {
@@ -256,12 +354,13 @@
                 y: 250,
                 tint: 0x000000,
                 alpha: .2,
-                //scale: .5,
+                scale: {x: .3, y: .3},
                 angle: 360
             })
-            swim();
+            star();
         }
-        swim();
+        star();
+
 
     </script>
 </head>

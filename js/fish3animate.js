@@ -28,13 +28,16 @@ Animate.to = function(obj, end) {
             y : obj.y,
             tint : obj.tint,
             alpha : obj.alpha,
-            //scale : obj.scale,
+            scale : {x : obj.scale.x, y : obj.scale.y},
             angle : obj.angle
         };
 
         //Set defaults
         if (end.easing === undefined) end.easing = Animate.linear;
         if (end.tint === undefined) end.tint = obj.tint;
+        if (end.alpha === undefined) end.alpha = obj.alpha;
+        if (end.scale === undefined) end.scale = { x: obj.scale.x, y: obj.scale.y };
+        if (end.angle === undefined) end.angle = obj.angle;
 
         //Start time
         let startTime = Date.now();
@@ -53,7 +56,8 @@ Animate.to = function(obj, end) {
                 obj.y = end.y;
                 obj.tint = end.tint;
                 obj.alpha = end.alpha;
-               // obj.scale = end.scale;
+                obj.scale.x = end.scale.x;
+                obj.scale.y = end.scale.y;
                 obj.angle = end.angle;
                 resolve();
                 return;
@@ -69,7 +73,8 @@ Animate.to = function(obj, end) {
             obj.y = lerp(start.y, end.y, ease);
             obj.tint = lerp(start.tint, end.tint, ease);
             obj.alpha = lerp(start.alpha, end.alpha, ease);
-            //obj.scale = lerp(start.scale, end.scale, ease);
+            obj.scale.x = lerp(start.scale.x, end.scale.x, ease);
+            obj.scale.y = lerp(start.scale.y, end.scale.y, ease);
             obj.angle = lerp(start.angle, end.angle, ease);
 
             
@@ -85,6 +90,25 @@ const Sleep = function (ms) {
     return new Promise( (resolve, reject) => {
         setTimeout(resolve, ms);
     });
+}
+
+Animate.bob = function(obj) {
+    
+    let startTime = Date.now();
+
+    let start = {
+        y : obj.y
+    };
+    
+    function loops() {
+
+        let ticker = Date.now() - startTime;
+        let bobbing = Math.sin(ticker / 500)*5;
+        obj.y = start.y + bobbing;
+        
+        requestAnimationFrame(loops);
+    }
+    loops();
 }
 
 export { Animate , Sleep};
