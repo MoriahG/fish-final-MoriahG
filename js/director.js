@@ -1,4 +1,4 @@
-import {Animate} from './animate.js';
+import {Animate} from './fish3animate.js';
 
 class Director {
 

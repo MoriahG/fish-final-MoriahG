@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All the Fishes</title>
-    <style>
-        canvas {
-            filter:hue-rotate(-30deg);
-            
-        }
-    </style>
+    <title>Fish Final Project</title>
 </head>
 
 <body>
     <script type="module">
 
-        //Import pixi
+        // Imports
         import {
             Application,
             Assets,
             Sprite,
-            Container
+            Container,
+            Graphics,
+            FillGradient,
+            Text,
+            TextStyle
         } from './js/pixi.js';
-
+        import { Animate, Sleep} from './js/fish3animate.js';
+        import { Director } from './js/director.js';
 
         //Create application
         const app = new Application();
 
         //Initialize the application
         await app.init({
-            width: 640,
-            height: 480,
+            width: 800,
+            height: 800,
+            background: 0x141414,
         });
         document.body.appendChild(app.canvas);
 
@@ -39,35 +38,55 @@
         const bgTexture = await Assets.load('img/aquarium.jpg');
         const background = new Sprite(bgTexture);
         // Position 
-        background.width = 640;
-        background.height = 480;
+        background.width = 800;
+        background.height = 560;
         // Add to stage
         app.stage.addChildAt(background, 0);
         
 
-        //Load the fish texture
+        // Load the fish texture
         const texture = await Assets.load('img/yellow_fish.png');
+        const starTexture = await Assets.load('img/starfish.png');
 
-        //Create sprite from an image path
+        // Create sprite from an image path
+        const starfish = new Sprite(starTexture);
         const fishsprite1 = new Sprite(texture);
         const fishsprite2 = new Sprite(texture);
         const fishsprite3 = new Sprite(texture);
+        const fishsprite4 = new Sprite(texture);
+        const fishsprite5 = new Sprite(texture);
 
-        //Create animiation container
+        // Create animiation container
         const deadfish = new Container();
             deadfish.x = 600;
+            deadfish.y = 90;
             deadfish.angle = 180;
             deadfish.tint = 0x40BB80;
+            deadfish.anchor = (.5);
         const funfish = new Container();
+            funfish.x = 200;
+            funfish.y = 150;
+            funfish.angle = 30;
+            funfish.tint = 0x40BB80;
+            funfish.anchor = (.5);
 
-        //Add to container
+        // Add to container
         deadfish.addChild(fishsprite1, fishsprite2);
         funfish.addChild(fishsprite3);
 
-        //Add container to stage
+        // Add container to stage
+        app.stage.addChild(fishsprite5);
+        app.stage.addChild(fishsprite4);
+        app.stage.addChild(starfish);
         app.stage.addChild(deadfish, funfish);
+      
 
-        //Alter sprite parameters
+        // Alter sprite parameters
+        starfish.scale.set(.2);
+        starfish.anchor.set(.5);
+        starfish.y = 250;
+        starfish.x = 80;
+
         fishsprite1.scale.set(.40);
 
         fishsprite2.scale.set(.25);
@@ -78,30 +97,469 @@
         fishsprite3.scale.set(.40);
         fishsprite3.tint= 0xFFFF00;
 
-        //Animation ticker
+        fishsprite4.scale.set(.4);
+        fishsprite4.x = 400;
+        fishsprite4.y = 150;
+
+        fishsprite5.scale.set(.3);
+        fishsprite5.x = 200;
+        fishsprite5.y = 400;
+        fishsprite5.anchor.set(.5);
+
+        
+        // Button text style
+        let textStyle3 = new TextStyle({
+            fontFamily: 'Inter',
+            fill: 'darkblue',
+            fontSize: 28,
+            fontWeight: 'bold',
+            align: 'center',
+        });
+
+        // Making button
+        // let whatever = new Button("Name", 200, 60);
+        class Button extends Container {
+
+            constructor(l, w, h) {
+                super(); // Sets up old object
+
+                // Build the button
+                this.l = l;
+                this.w = w;
+                this.h = h;
+                this.c = 0xFFFFFF;
+                this.s = 0x000000;
+
+                // Make it listen for events
+                this.eventMode = 'static'; 
+
+                // Draw the button
+                this.draw();
+
+                // Set hover states
+                this.on('pointerover', () => {
+                    this.tint = "lightblue";
+                    this.cursor = "pointer";
+                })
+                this.on('pointerout', () => {
+                    this.tint = "white";
+                    this.cursor = "auto";
+                })
+                this.on('pointerdown', () => {
+                    this.tint = "lightblue";
+                    this.cursor = "pointer";
+                })
+                this.on('pointerup', () => {
+                    this.tint = "white";
+                    this.cursor = "auto";
+                })
+
+            }
+            // Button set up
+            draw(){
+                // Empty it out
+                while(this.children.length > 0)
+                    this.removeChildAt(0);
+
+                // The body
+                this.body = new Graphics()
+                            .rect(0,0,this.w, this.h)
+                            .fill(this.c)
+                            .stroke(this.s);
+                this.addChild(this.body);
+
+                // The label
+                this.label = new Text({
+                    text: this.l,
+                    anchor: .5,
+                    style: textStyle3
+                });
+                this.label.x = this.w/2;
+                this.label.y = this.h/2;
+                this.addChild(this.label);
+            }
+            // Set the label
+            setLabel(name){
+                this.l = name;
+                this.label.text = name;
+                this.draw();
+            }
+            // Set color
+            setColor(color){
+                this.c = color;
+                this.draw();
+            }
+            // Set size
+            setSize(w, h){
+                this.w = w;
+                this.h = h;
+                this.draw();
+
+            }
+            // Set stroke
+            setStroke(stroke){
+                this.s = stroke;
+                this.draw();
+            }
+
+        }
+        
+        // Clean Tank Button
+        let button = new Button("Clean Tank", 190, 60);
+            button.x = 30;
+            button.y = background.height + (30);
+            button.setColor("white");
+
+        
+        // Fish tank glass gradient
+        const gradient = new FillGradient
+        ({
+            type: 'linear',
+            start: { x: 0, y: 0 },
+            end: { x: 1, y: 1 },
+            colorStops: [
+                { offset: 0, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .1, color: 'lightblue' },
+                { offset: .2, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .5, color: 'lightblue' },
+                { offset: .8, color: 'rgba(0, 0, 0, 0)'},
+                { offset: .9, color: 'lightblue' },
+                { offset: 1, color: 'rgba(0, 0, 0, 0)'},
+            ],
+        });
+
+        // Fish tank stuff
+        let tankAlgae = new Graphics()
+            .rect(0,0,800, 560)
+            .fill({color: 'rgba(0, 200, 0, 0.5)'})
+
+        let glass = new Graphics()
+            .rect(0,0,800, 560)
+            .fill({fill: gradient, alpha: .5});
+            
+        let fishtank = new Graphics()
+            .rect(0,0,800, 560)
+            .stroke({width: 10, color: "black", alignment: 1});
+
+        
+        app.stage.addChild(tankAlgae, glass);
+        app.stage.addChild(fishtank);
+        app.stage.addChild(button);
+        
+
+        //--------------- Scenes ---------------
+
+        let director = new Director(app.stage);
+
+        // Start Scene
+        let sceneStart = new Container();
+
+        // Scene Text styles
+        let textStyle = new TextStyle({
+            fontFamily: 'Inter',
+            fill: 'aqua',
+            fontSize: 70,
+            fontWeight: 'bold',
+            align: 'center',
+        });
+
+        let textStyle2 = new TextStyle({
+            fontFamily: 'Inter',
+            fill: '0xFFFFFF',
+            fontSize: 30,
+            align: 'center',
+        });
+
+        let textStyle4 = new TextStyle({
+            fontFamily: 'Inter',
+            fill: 'black',
+            fontSize: 30,
+            align: 'center',
+            wordWrap: true,
+            wordWrapWidth: 500,
+        });
+
+        let startText = new Text('Fish Final Project', textStyle);
+        startText.x = app.stage.width / 2 - startText.width / 2;
+        startText.y = 100;
+
+        let titleText = new Text('User Interface Programming',textStyle2);
+        titleText.x = app.stage.width / 2 - titleText.width / 2;
+        titleText.y = 190;
+
+        let startButton = new Button("Play", 100, 50);
+        startButton.x = app.canvas.width / 2 - startButton.w / 2;
+        startButton.y = app.canvas.height / 2 - startButton.h / 2;
+
+
+        sceneStart.addChild(startText, titleText, startButton);
+        director.addScene("sceneStart", sceneStart);
+
+        // Scene 1 - Tank
+        let sceneTank = new Container();
+            sceneTank.addChild(background, deadfish, funfish, starfish, fishsprite4, 
+            fishsprite5, tankAlgae, fishtank, glass, button);
+
+        let paper = new Graphics()
+            .rect(0,0,800, 800)
+            .fill({color: 'rgba(255, 255, 255, 0.7)'});
+            paper.x = app.canvas.width / 2 - paper.width / 2;
+            paper.y = app.canvas.height / 2 - paper.height / 2;
+        
+        let popup = new Text('Oh no, your pet sitter neglected your fish and they threw a dangerous tank party while you were away! Clean up your fish tank and bring it back to its former glory!!', textStyle4);
+            popup.x = app.canvas.width / 2 - popup.width / 2;
+            popup.y = app.canvas.height / 2 - popup.height / 1.4;
+        
+        let buttonOk = new Button("Ok",100,50);
+            buttonOk.x = app.canvas.width / 2 - buttonOk.w / 2;
+            buttonOk.y = 550;
+
+        let button1 = new Button("Go to Bathroom >",260,50);
+            button1.x = app.canvas.width - (button1.w + 30);
+            button1.y = app.canvas.height - (button1.h + 30);
+            sceneTank.addChild(button1,paper, popup, buttonOk);
+        director.addScene("sceneTank", sceneTank);
+
+        // Scene 2 - Bathroom
+        const bathTexture = await Assets.load('img/bathroom.jpg');
+        const bathroom = new Sprite(bathTexture);
+        bathroom.width = 800;
+        bathroom.height = 560;
+        app.stage.addChild(bathroom);
+
+        let sceneBath = new Container();
+
+        let button2 = new Button("< Go Back",200,50);
+            button2.x += 30;
+            button2.y = app.canvas.height - (button2.h + 30);
+        
+        let button3 = new Button("Go to toilet",200,50);
+            button3.x += button2.w + 60;
+            button3.y = app.canvas.height - (button3.h + 30);
+
+        let button4 = new Button("Go to cabinet",200,50);
+            button4.x += button3.w + 290;
+            button4.y = app.canvas.height - (button3.h + 30);
+            sceneBath.addChild(button2, button3, button4, bathroom);
+
+        director.addScene("sceneBath", sceneBath);
+
+        // Scene 3 - Toilet
+        const toiletTexture = await Assets.load('img/toilet.jpg');
+        const toilet = new Sprite(toiletTexture);
+        toilet.width = 800;
+        toilet.height = 560;
+        app.stage.addChild(toilet);
+
+        let sceneToilet = new Container();
+        let button5 = new Button("< Go Back",200,50);
+            button5.x += 30;
+            button5.y = app.canvas.height - (button5.h + 30);
+            sceneToilet.addChild(button5, toilet);
+
+        director.addScene("sceneToilet", sceneToilet);
+
+        // Scene 4 - Cabinet
+        const cabinetTexture = await Assets.load('img/cabinet.jpg');
+        const cabinet = new Sprite(cabinetTexture);
+        cabinet.width = 800;
+        cabinet.height = 560;
+        app.stage.addChild(cabinet);
+        
+        let sceneCabinet = new Container();
+        let button6 = new Button("< Go Back",200,50);
+            button6.x += 30;
+            button6.y = app.canvas.height - (button6.h + 30);
+            sceneCabinet.addChild(button6, cabinet);
+
+        director.addScene("sceneCabinet", sceneCabinet);
+
+        // Scene button actions
+        button.on("click", () => {
+            sceneTank.removeChild(tankAlgae);
+        });
+           
+        startButton.on("click", () => {
+            director.showScene("sceneTank");
+        });
+
+        buttonOk.on("click", () => {
+            sceneTank.removeChild(paper, popup, buttonOk);
+        });
+
+        button1.on("click", () => {
+            director.showScene("sceneBath");
+        });
+
+        button2.on("click", () => {
+            director.showScene("sceneTank");
+        });
+
+        button3.on("click", () => {
+            director.showScene("sceneToilet");
+        });
+
+        button4.on("click", () => {
+            director.showScene("sceneCabinet");
+        });
+
+        button5.on("click", () => {
+            director.showScene("sceneBath");
+        });
+
+        button6.on("click", () => {
+            director.showScene("sceneBath");
+        });
+
+        //--------------- Animations ---------------
+
+        //-------fishsprite3-------
         app.ticker.add((time) => {
 
             let tick = time.lastTime;
 
-            //Fish bobbing
-            let bobbing = Math.sin(tick / 500)*5;
-            deadfish.y = 90 + bobbing;
-            
-
             // Fish moving
             funfish.x = app.screen.width / 2 + Math.sin(tick / 1000) * app.screen.width / 4;
-            funfish.y = app.screen.height / 1.6 + Math.sin(tick / 2000) * app.screen.height / 9;
+            funfish.y = app.screen.height / 3 + Math.sin(tick / 2000) * app.screen.height / 9;
 
-            // Fish flap
-            // let flap = .3 + Math.sin(tick / 30) * .005;
-            // fishsprite1.scale.set(flap, .3);
-
-            //Rotate the fish
-            fishsprite3.angle = .3 * tick;
         });
 
+        async function rotate(){
+            await Animate.to(funfish, {
+                duration: 1000,
+                angle: funfish.angle + 360
+            })
+            rotate();
+        }
+        rotate();
         
-    </script>
-</body>
+        //--------------- Draggable dead fish ---------------
+        
+        
+        //-------fishsprite1-------
+        fishsprite1.eventMode = 'static';
+        fishsprite1.interactive = true;
+        fishsprite1.cursor = "pointer";
 
+        //-------fishsprite2-------
+        fishsprite2.eventMode = 'static';
+        fishsprite2.interactive = true;
+        fishsprite2.cursor = "pointer";
+
+        
+        Animate.bob(deadfish);
+        
+
+        // Begin dragging (pointerdown)
+        function onPointerDown() {
+            this.dragging = true; console.log("Down");
+        }
+        
+        // Dragging
+        function onGlobalPointerMove(event) {
+            console.log(event.global);
+            if (this.dragging) {
+                const local = this.parent.toLocal(event.global);
+                this.x = local.x - (this.width/2);
+                this.y = local.y - (this.height/2);
+            }
+        }
+
+        // End dragging (pointerup and pointerupoutside)
+        function onPointerUp() {
+           this.dragging = false; console.log("Up");
+        }
+        
+        function onPointerUpOutside(){
+            this.dragging = false; console.log("Up");
+        }
+
+        fishsprite1.on('pointerdown', onPointerDown);
+        fishsprite1.on('globalpointermove', onGlobalPointerMove);
+        fishsprite1.on('pointerup', onPointerUp);
+        fishsprite1.on('pointerupoutside', onPointerUpOutside);
+
+        fishsprite2.on('pointerdown', onPointerDown);
+        fishsprite2.on('globalpointermove', onGlobalPointerMove);
+        fishsprite2.on('pointerup', onPointerUp);
+        fishsprite2.on('pointerupoutside', onPointerUpOutside);
+
+        //-------fishsprite4-------
+        fishsprite4.eventMode = 'static';
+        fishsprite4.interactive = true;
+        fishsprite4.cursor = "pointer";
+
+        Animate.bob(fishsprite4);
+        fishsprite4.on('pointerdown', (event) => {
+            async function swim() {
+                await Animate.to(fishsprite4, {
+                    duration: 1800,
+                    x: 100,
+                    y: -40,
+                    angle: 30,
+                    easing: Animate.easeInOut
+                })
+                await Animate.to(fishsprite4, {
+                    duration: 2000,
+                    x: 400,
+                    y: 150,
+                    angle: 0,
+                    easing: Animate.easeInOut
+                })
+            }
+            swim();
+        });
+
+        //-------fishsprite5-------
+        background.eventMode = 'static';
+        background.interactive = true;
+        background.cursor = "pointer";
+
+        Animate.bob(fishsprite5);
+        background.on('pointerdown', (event) => {
+            async function swim() {
+                await Animate.to(fishsprite5, {
+                    duration: 3000,
+                    x: event.global.x,
+                    y: event.global.y,
+                    easing: Animate.easeInOut
+                })
+                await Animate.to(fishsprite5, {
+                    duration: 3000,
+                    x: 200,
+                    y: 400,
+                    easing: Animate.easeInOut
+                })
+            }
+            swim();
+        });
+    
+        //-------Starfish-------
+        async function star() {
+            await Animate.to(starfish, {
+                duration:1000,
+                x: 80,
+                y: 250,
+                tint: 0xFF0000,
+                alpha: 1,
+                scale: {x: .5, y: .5},
+                angle: 0
+            })
+            await Animate.to(starfish, {
+                duration:1000,
+                x: 80,
+                y: 250,
+                tint: 0x000000,
+                alpha: .2,
+                scale: {x: .3, y: .3},
+                angle: 360
+            })
+            star();
+        }
+        star();
+    </script>
+</head>
+<body>
+    
+</body>
 </html>
